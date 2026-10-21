@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="demo/servidor.js"></script>
+    <script src="demo/migracoes.js"></script>
+    <script src="demo/semear.js"></script>
+    <script src="demo/demo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Escala mensal de plantões no Lory's Care." />
+    <title>Plantões | Lory's Care</title>
+    <script>
+      (function () {
+        var theme = "system";
+        try { theme = localStorage.getItem("loreroutine:theme") || "system"; } catch (error) {}
+        var dark = theme === "dark"
+          || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css?v=20261013-3" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__header">
+          <a class="brand" href="index.html"><span class="brand__icon"></span>Lory's<span> Care</span></a>
+          <button class="sidebar-toggle-button" id="sidebar-toggle-button" type="button" aria-label="Recolher menu">☰</button>
+        </div>
+        <p class="sidebar__tagline">Cuidado que acolhe.</p>
+        <select class="patient-switcher" id="patient-switcher" aria-label="Selecionar paciente"></select>
+        <div class="sidebar-user-card" id="sidebar-user-card">
+          <div class="sidebar-user-card__avatar" id="sidebar-user-avatar"></div>
+          <div class="sidebar-user-card__info">
+            <p class="sidebar-user-card__name" id="sidebar-user-name"></p>
+            <p class="sidebar-user-card__role">Cuidador</p>
+          </div>
+        </div>
+        <nav class="sidebar__nav">
+          <a class="nav-link" href="index.html">Dashboard</a>
+          <a class="nav-link" href="pacientes.html">Paciente</a>
+          <a class="nav-link" href="sinais-vitais.html">Sinais vitais</a>
+          <a class="nav-link" href="medicamentos.html">Medicamentos</a>
+          <a class="nav-link" href="atividades.html">Atividades</a>
+          <a class="nav-link" href="anotacoes-enfermagem.html">Anotações enfermagem</a>
+          <a class="nav-link" href="agenda.html">Agenda</a>
+          <a class="nav-link nav-link--active" href="plantoes.html">Plantões</a>
+        </nav>
+        <div class="sidebar-bottom-card">
+          <span class="icon sidebar-bottom-card__icon"></span>
+          <p>Acolher é estar presente.<br />Cuidar é fazer a diferença todos os dias.</p>
+        </div>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar"><div class="container topbar__content"><p class="current-date" id="current-date"></p><div data-theme-toggle></div><div class="account-menu" id="account-menu"></div></div></header>
+
+        <main class="main-content container">
+          <section class="page-header">
+            <h1>Plantões</h1>
+            <p>Monte a escala mensal dos cuidadores e acompanhe cada plantão programado.</p>
+          </section>
+
+          <div class="tabs-row">
+            <div class="tabs" role="tablist">
+              <button class="tab-button" id="tab-button-escala" type="button" role="tab" data-tab="escala">Escala</button>
+              <button class="tab-button" id="tab-button-pagamentos" type="button" role="tab" data-tab="pagamentos">Pagamentos</button>
+            </div>
+            <div class="history-panel__header-actions schedule-period-selectors">
+              <select class="schedule-period-select schedule-period-select--month" id="month-select" aria-label="Mês"></select>
+              <select class="schedule-period-select schedule-period-select--year" id="year-select" aria-label="Ano"></select>
+            </div>
+          </div>
+
+          <div id="tab-escala">
+          <section class="history-panel" id="schedule-settings-panel" aria-labelledby="month-label">
+            <div class="history-panel__header">
+              <div><p class="eyebrow">Escala</p><h2 id="month-label">Mês</h2></div>
+            </div>
+            <p class="form-message" id="month-message" aria-live="polite"></p>
+
+            <div id="generate-panel" hidden>
+              <h3>Gerar escala do mês</h3>
+              <form id="generate-form">
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label for="duration-select">Tipo de plantão</label>
+                    <select id="duration-select" name="durationHours" required>
+                      <option value="12">12 horas</option>
+                      <option value="24">24 horas</option>
+                    </select>
+                  </div>
+                  <div class="form-field"><label for="first-start-time">Início do plantão</label><input id="first-start-time" name="firstStartTime" type="time" required /></div>
+                  <div class="form-field" id="second-start-field" hidden><label for="second-start-time">Início do 2º período</label><input id="second-start-time" name="secondStartTime" type="time" /></div>
+                  <div class="form-field"><label for="generate-shift-rate">Valor do plantão (R$)</label><input id="generate-shift-rate" name="shiftRate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Igual para todos (opcional)" /></div>
+                  <div class="form-field form-field--full">
+                    <label>Cuidadores participantes</label>
+                    <div class="weekday-options" id="caregiver-checklist"></div>
+                  </div>
+                  <div class="form-field form-field--full">
+                    <label>Ordem do revezamento</label>
+                    <ul class="reorder-list" id="reorder-list"></ul>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="primary-button" type="submit">Gerar escala do mês</button>
+                  <p class="form-message" id="generate-message" aria-live="polite"></p>
+                </div>
+              </form>
+            </div>
+            <div id="summary-panel" hidden>
+              <div class="history-panel__header">
+                <div><p class="eyebrow">Configuração</p><h3>Detalhes da escala</h3></div>
+                <button class="secondary-button" id="delete-month-button" type="button">Excluir escala do mês</button>
+              </div>
+              <dl class="schedule-summary" aria-label="Configuração da escala">
+                <div class="schedule-summary__item"><dt>Tipo de plantão</dt><dd id="summary-duration"></dd></div>
+                <div class="schedule-summary__item"><dt>Início do plantão</dt><dd id="summary-start-time"></dd></div>
+                <div class="schedule-summary__item schedule-summary__item--wide"><dt>Ordem do revezamento</dt><dd id="summary-caregivers"></dd></div>
+              </dl>
+              <p class="form-message" id="summary-message" aria-live="polite"></p>
+            </div>
+          </section>
+
+          <section class="history-panel" id="shifts-panel" aria-labelledby="shifts-label" hidden>
+            <div class="history-panel__header">
+              <div><p class="eyebrow">Plantões</p><h2 id="shifts-label">Escala do mês</h2></div>
+              <button class="secondary-button schedule-print-button" id="print-schedule-button" type="button" title="Gerar PDF da escala">
+                <span class="icon" data-icon="fileText"></span>Gerar PDF
+              </button>
+            </div>
+            <p class="form-message" id="swap-pending-message" aria-live="polite" hidden></p>
+            <div class="shift-calendar-guide" aria-label="Legenda do calendário">
+              <div class="shift-calendar-legend">
+                <span class="shift-calendar-legend__item shift-calendar-legend__item--enter">→ Entra no plantão</span>
+                <span class="shift-calendar-legend__item shift-calendar-legend__item--exit">→ Sai do plantão</span>
+              </div>
+              <p>Cada dia mostra quem encerra o plantão e quem assume o próximo.</p>
+            </div>
+            <div class="calendar__grid calendar__grid--weekdays">
+              <span class="calendar__weekday">Dom</span><span class="calendar__weekday">Seg</span><span class="calendar__weekday">Ter</span>
+              <span class="calendar__weekday">Qua</span><span class="calendar__weekday">Qui</span><span class="calendar__weekday">Sex</span><span class="calendar__weekday">Sáb</span>
+            </div>
+            <div class="calendar__grid" id="shifts-calendar-grid"></div>
+          </section>
+          </div>
+
+          <section class="history-panel" id="tab-pagamentos" aria-labelledby="payments-label" hidden>
+            <div class="history-panel__header">
+              <div><p class="eyebrow">Pagamentos</p><h2 id="payments-label">Seu pagamento</h2></div>
+            </div>
+            <p class="form-message" id="payments-message" aria-live="polite"></p>
+            <p class="empty-history" id="payments-empty" hidden></p>
+
+            <dl class="schedule-summary" id="earnings-summary" aria-label="Seu pagamento no mês" hidden>
+              <div class="schedule-summary__item"><dt>Plantões no mês</dt><dd id="earnings-shift-count"></dd></div>
+              <div class="schedule-summary__item"><dt>Valor do plantão</dt><dd id="earnings-rate"></dd></div>
+              <div class="schedule-summary__item schedule-summary__item--wide earnings-total"><dt>Total a receber</dt><dd id="earnings-total"></dd></div>
+            </dl>
+            <p class="earnings-note" id="earnings-note" hidden>Cálculo: valor do plantão × seus plantões na escala do mês. Se a escala mudar (troca, edição ou exclusão de plantão), o total é recalculado automaticamente.</p>
+
+            <form class="rates-form" id="rate-form" hidden>
+              <h3>Valor do plantão</h3>
+              <p class="earnings-note">O valor é o mesmo para todos os cuidadores deste mês.</p>
+              <div class="form-grid">
+                <div class="form-field"><label for="shift-rate-input">Valor do plantão (R$)</label><input id="shift-rate-input" name="shiftRate" type="number" min="0" step="0.01" inputmode="decimal" required /></div>
+              </div>
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Salvar valor</button>
+                <p class="form-message" id="rate-message" aria-live="polite"></p>
+              </div>
+            </form>
+          </section>
+        </main>
+
+        <div class="modal-overlay" id="day-modal-overlay" hidden>
+          <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="day-modal-title">
+            <div class="modal-box__header">
+              <h3 id="day-modal-title"></h3>
+              <button class="table-action table-action--icon" type="button" id="close-day-modal-button" aria-label="Fechar">✕</button>
+            </div>
+            <p class="form-message" id="day-modal-message" aria-live="polite"></p>
+            <div id="day-modal-body"></div>
+          </div>
+        </div>
+        <footer><div class="container"><p><span class="footer-heart"></span>Lory's Care — apoio para o cuidado cotidiano.</p></div></footer>
+      </div>
+    </div>
+    <script src="js/theme-toggle.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth-context.js"></script>
+    <script src="js/caregiver-profiles-repository.js?v=20260824-1"></script>
+    <script src="js/caregiver-context.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/ui-icons.js?v=20260821-1"></script>
+    <script src="js/account-menu.js"></script>
+    <script src="js/sidebar-toggle.js"></script>
+    <script src="js/patient-context.js"></script>
+    <script src="js/live-updates.js"></script>
+    <script src="js/schedule-repository.js?v=20261013-2"></script>
+    <script src="js/plantoes.js?v=20261013-2"></script>
+  </body>
+</html>

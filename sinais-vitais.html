@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="demo/servidor.js"></script>
+    <script src="demo/migracoes.js"></script>
+    <script src="demo/semear.js"></script>
+    <script src="demo/demo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Registro de sinais vitais no Lory's Care." />
+    <title>Sinais vitais | Lory's Care</title>
+    <script>
+      (function () {
+        var theme = "system";
+        try { theme = localStorage.getItem("loreroutine:theme") || "system"; } catch (error) {}
+        var dark = theme === "dark"
+          || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css?v=20261013-3" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__header">
+          <a class="brand" href="index.html"><span class="brand__icon"></span>Lory's<span> Care</span></a>
+          <button class="sidebar-toggle-button" id="sidebar-toggle-button" type="button" aria-label="Recolher menu">☰</button>
+        </div>
+        <p class="sidebar__tagline">Cuidado que acolhe.</p>
+        <select class="patient-switcher" id="patient-switcher" aria-label="Selecionar paciente"></select>
+        <div class="sidebar-user-card" id="sidebar-user-card">
+          <div class="sidebar-user-card__avatar" id="sidebar-user-avatar"></div>
+          <div class="sidebar-user-card__info">
+            <p class="sidebar-user-card__name" id="sidebar-user-name"></p>
+            <p class="sidebar-user-card__role">Cuidador</p>
+          </div>
+        </div>
+        <nav class="sidebar__nav">
+          <a class="nav-link" href="index.html">Dashboard</a>
+          <a class="nav-link" href="pacientes.html">Paciente</a>
+          <a class="nav-link nav-link--active" href="sinais-vitais.html">Sinais vitais</a>
+          <a class="nav-link" href="medicamentos.html">Medicamentos</a>
+          <a class="nav-link" href="atividades.html">Atividades</a>
+          <a class="nav-link" href="anotacoes-enfermagem.html">Anotações enfermagem</a>
+          <a class="nav-link" href="agenda.html">Agenda</a>
+          <a class="nav-link" href="plantoes.html">Plantões</a>
+        </nav>
+        <div class="sidebar-bottom-card">
+          <span class="icon sidebar-bottom-card__icon"></span>
+          <p>Acolher é estar presente.<br />Cuidar é fazer a diferença todos os dias.</p>
+        </div>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar">
+          <div class="container topbar__content">
+            <p class="current-date" id="current-date" aria-live="polite"></p>
+            <div data-theme-toggle></div><div class="account-menu" id="account-menu"></div>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <header class="page-header container">
+            <h1>Sinais vitais</h1>
+            <p>Registre rapidamente as medições do dia e consulte o histórico completo.</p>
+          </header>
+
+          <div class="tabs-row container">
+            <div class="tabs" role="tablist">
+              <button class="tab-button" id="tab-button-novo" type="button" data-tab="novo">Novo registro</button>
+              <button class="tab-button" id="tab-button-historico" type="button" data-tab="historico">Histórico</button>
+            </div>
+          </div>
+
+          <section class="form-panel container" id="tab-novo" aria-labelledby="form-title">
+            <h2 id="form-title">Novo registro</h2>
+
+            <form id="vitals-form">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="date">Data</label>
+                  <input id="date" name="date" type="date" required />
+                </div>
+
+                <div class="form-field">
+                  <label for="time">Horário</label>
+                  <input id="time" name="time" type="time" required />
+                </div>
+
+                <div class="form-field">
+                  <label for="shift">Período/turno</label>
+                  <select id="shift" name="shift" required>
+                    <option value="">Selecione</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noite">Noite</option>
+                    <option value="Madrugada">Madrugada</option>
+                  </select>
+                </div>
+
+                <div class="form-field">
+                  <label for="blood-pressure">Pressão arterial</label>
+                  <input
+                    id="blood-pressure"
+                    name="bloodPressure"
+                    type="text"
+                    placeholder="Ex.: 120/80"
+                    pattern="[0-9]{2,3}/[0-9]{2,3}"
+                  />
+                  <small>Informe no formato sistólica/diastólica.</small>
+                </div>
+
+                <div class="form-field">
+                  <label for="temperature">Temperatura (°C)</label>
+                  <input
+                    id="temperature"
+                    name="temperature"
+                    type="number"
+                    min="30"
+                    max="45"
+                    step="0.1"
+                    placeholder="Ex.: 36,5"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="oxygen-saturation">Saturação (%)</label>
+                  <input
+                    id="oxygen-saturation"
+                    name="oxygenSaturation"
+                    type="number"
+                    min="1"
+                    max="100"
+                    placeholder="Ex.: 98"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="heart-rate">Frequência cardíaca (bpm)</label>
+                  <input
+                    id="heart-rate"
+                    name="heartRate"
+                    type="number"
+                    min="1"
+                    max="300"
+                    placeholder="Ex.: 72"
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="blood-glucose">Glicemia (mg/dL)</label>
+                  <input
+                    id="blood-glucose"
+                    name="bloodGlucose"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    placeholder="Opcional"
+                  />
+                </div>
+
+                <div class="form-field form-field--full">
+                  <label for="notes">Observações</label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    maxlength="500"
+                    placeholder="Anotações importantes sobre o momento da medição"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="primary-button" id="submit-button" type="submit">
+                  Registrar sinais vitais
+                </button>
+                <p class="form-message" id="form-message" aria-live="polite"></p>
+              </div>
+            </form>
+          </section>
+
+          <div id="tab-historico" hidden>
+            <section class="form-panel container" id="edit-panel" aria-labelledby="edit-form-title" hidden>
+              <h2 id="edit-form-title">Editando registro</h2>
+              <form id="edit-form">
+                <div class="form-grid">
+                  <div class="form-field"><label for="edit-date">Data</label><input id="edit-date" name="date" type="date" required /></div>
+                  <div class="form-field"><label for="edit-time">Horário</label><input id="edit-time" name="time" type="time" required /></div>
+                  <div class="form-field">
+                    <label for="edit-shift">Período/turno</label>
+                    <select id="edit-shift" name="shift" required>
+                      <option value="">Selecione</option>
+                      <option value="Manhã">Manhã</option>
+                      <option value="Tarde">Tarde</option>
+                      <option value="Noite">Noite</option>
+                      <option value="Madrugada">Madrugada</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label for="edit-blood-pressure">Pressão arterial</label>
+                    <input id="edit-blood-pressure" name="bloodPressure" type="text" placeholder="Ex.: 120/80" pattern="[0-9]{2,3}/[0-9]{2,3}" />
+                  </div>
+                  <div class="form-field"><label for="edit-temperature">Temperatura (°C)</label><input id="edit-temperature" name="temperature" type="number" min="30" max="45" step="0.1" /></div>
+                  <div class="form-field"><label for="edit-oxygen-saturation">Saturação (%)</label><input id="edit-oxygen-saturation" name="oxygenSaturation" type="number" min="1" max="100" /></div>
+                  <div class="form-field"><label for="edit-heart-rate">Frequência cardíaca (bpm)</label><input id="edit-heart-rate" name="heartRate" type="number" min="1" max="300" /></div>
+                  <div class="form-field"><label for="edit-blood-glucose">Glicemia (mg/dL)</label><input id="edit-blood-glucose" name="bloodGlucose" type="number" min="1" max="1000" /></div>
+                  <div class="form-field form-field--full"><label for="edit-notes">Observações</label><textarea id="edit-notes" name="notes" maxlength="500"></textarea></div>
+                </div>
+                <div class="form-actions">
+                  <button class="primary-button" id="edit-submit-button" type="submit">Salvar alterações</button>
+                  <button class="secondary-button" id="cancel-edit-button" type="button">Cancelar edição</button>
+                  <p class="form-message" id="edit-form-message" aria-live="polite"></p>
+                </div>
+              </form>
+            </section>
+
+            <section class="history-panel container" aria-labelledby="history-title">
+              <div class="history-panel__header">
+                <div><p class="eyebrow">Acompanhamento</p><h2 id="history-title">Registros de sinais vitais</h2></div>
+                <div class="history-panel__header-actions">
+                  <p id="records-count" class="records-count"></p>
+                  <button class="secondary-button" id="print-button" type="button" title="Gerar PDF" aria-label="Gerar PDF"><span class="icon" data-icon="fileText"></span></button>
+                </div>
+              </div>
+
+              <form class="history-filters" id="history-filters">
+                <div class="form-field"><label for="filter-start-date">Data inicial</label><input id="filter-start-date" name="startDate" type="date" /></div>
+                <div class="form-field"><label for="filter-end-date">Data final</label><input id="filter-end-date" name="endDate" type="date" /></div>
+                <div class="form-field">
+                  <label for="filter-shift">Turno</label>
+                  <select id="filter-shift" name="shift">
+                    <option value="">Todos</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noite">Noite</option>
+                    <option value="Madrugada">Madrugada</option>
+                  </select>
+                </div>
+                <button class="secondary-button" id="clear-filters-button" type="button">Limpar filtros</button>
+              </form>
+
+              <p id="empty-history" class="empty-history">Nenhum sinal vital foi registrado.</p>
+
+              <div id="history-table-wrapper" class="table-wrapper" hidden>
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Data e hora</th>
+                      <th scope="col">Turno</th>
+                      <th scope="col">PA</th>
+                      <th scope="col">FC</th>
+                      <th scope="col">Saturação</th>
+                      <th scope="col">Temperatura</th>
+                      <th scope="col">Glicemia</th>
+                      <th scope="col">Observações</th>
+                      <th scope="col">Registrado por</th>
+                      <th scope="col">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vitals-history"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </main>
+
+        <footer>
+          <div class="container">
+            <p><span class="footer-heart"></span>Lory's Care — apoio para o cuidado cotidiano.</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script src="js/theme-toggle.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth-context.js"></script>
+    <script src="js/caregiver-profiles-repository.js?v=20260824-1"></script>
+    <script src="js/caregiver-context.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/work-shifts-repository.js?v=20260821-1"></script>
+    <script src="js/ui-icons.js?v=20260821-1"></script>
+    <script src="js/account-menu.js"></script>
+    <script src="js/sidebar-toggle.js"></script>
+    <script src="js/patient-context.js"></script>
+    <script src="js/live-updates.js"></script>
+    <script src="js/vitals-repository.js"></script>
+    <script src="js/vitals.js"></script>
+  </body>
+</html>

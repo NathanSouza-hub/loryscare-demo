@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="demo/servidor.js"></script>
+    <script src="demo/migracoes.js"></script>
+    <script src="demo/semear.js"></script>
+    <script src="demo/demo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Agenda de eventos no Lory's Care." />
+    <title>Agenda | Lory's Care</title>
+    <script>
+      (function () {
+        var theme = "system";
+        try { theme = localStorage.getItem("loreroutine:theme") || "system"; } catch (error) {}
+        var dark = theme === "dark"
+          || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css?v=20261013-3" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__header">
+          <a class="brand" href="index.html"><span class="brand__icon"></span>Lory's<span> Care</span></a>
+          <button class="sidebar-toggle-button" id="sidebar-toggle-button" type="button" aria-label="Recolher menu">☰</button>
+        </div>
+        <p class="sidebar__tagline">Cuidado que acolhe.</p>
+        <select class="patient-switcher" id="patient-switcher" aria-label="Selecionar paciente"></select>
+        <div class="sidebar-user-card" id="sidebar-user-card">
+          <div class="sidebar-user-card__avatar" id="sidebar-user-avatar"></div>
+          <div class="sidebar-user-card__info">
+            <p class="sidebar-user-card__name" id="sidebar-user-name"></p>
+            <p class="sidebar-user-card__role">Cuidador</p>
+          </div>
+        </div>
+        <nav class="sidebar__nav">
+          <a class="nav-link" href="index.html">Dashboard</a>
+          <a class="nav-link" href="pacientes.html">Paciente</a>
+          <a class="nav-link" href="sinais-vitais.html">Sinais vitais</a>
+          <a class="nav-link" href="medicamentos.html">Medicamentos</a>
+          <a class="nav-link" href="atividades.html">Atividades</a>
+          <a class="nav-link" href="anotacoes-enfermagem.html">Anotações enfermagem</a>
+          <a class="nav-link nav-link--active" href="agenda.html">Agenda</a>
+          <a class="nav-link" href="plantoes.html">Plantões</a>
+        </nav>
+        <div class="sidebar-bottom-card">
+          <span class="icon sidebar-bottom-card__icon"></span>
+          <p>Acolher é estar presente.<br />Cuidar é fazer a diferença todos os dias.</p>
+        </div>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar"><div class="container topbar__content"><p class="current-date" id="current-date"></p><div data-theme-toggle></div><div class="account-menu" id="account-menu"></div></div></header>
+
+        <main class="main-content container">
+          <section class="page-header">
+            <h1>Agenda</h1>
+            <p>Cadastre consultas, exames e outros compromissos e acompanhe o mês inteiro em um calendário.</p>
+          </section>
+
+          <section class="history-panel" aria-labelledby="calendar-month-label">
+            <div class="history-panel__header">
+              <div><p class="eyebrow">Agenda</p><h2 id="calendar-month-label">Calendário</h2></div>
+              <div class="calendar__nav">
+                <button class="secondary-button" id="prev-month-button" type="button">← Mês anterior</button>
+                <button class="secondary-button" id="next-month-button" type="button">Próximo mês →</button>
+                <button class="primary-button" id="new-event-button" type="button">+ Cadastrar evento</button>
+              </div>
+            </div>
+
+            <div id="event-form-panel" hidden>
+              <h3 id="form-title">Novo evento</h3>
+              <form id="event-form">
+                <div class="form-grid">
+                  <div class="form-field form-field--full"><label for="title">Título</label><input id="title" name="title" maxlength="120" placeholder="Ex.: Consulta com cardiologista" required /></div>
+                  <div class="form-field"><label for="category">Categoria</label><select id="category" name="category"><option value="">Selecione</option><option>Consulta médica</option><option>Exame</option><option>Aniversário</option><option>Visita</option><option>Outro</option></select></div>
+                  <div class="form-field"><label for="event-date">Data inicial</label><input id="event-date" name="eventDate" type="date" required /></div>
+                  <div class="form-field"><label for="event-time">Horário</label><input id="event-time" name="eventTime" type="time" required /></div>
+                  <div class="form-field form-field--full"><label><input id="repeat-weekly" name="repeatWeekly" type="checkbox" /> Repetir semanalmente</label></div>
+                  <div class="form-field form-field--full" id="recurrence-fields" hidden>
+                    <label>Dias da semana</label>
+                    <div class="weekday-options">
+                      <label><input name="repeatWeekdays" type="checkbox" value="0" /> Dom</label>
+                      <label><input name="repeatWeekdays" type="checkbox" value="1" /> Seg</label>
+                      <label><input name="repeatWeekdays" type="checkbox" value="2" /> Ter</label>
+                      <label><input name="repeatWeekdays" type="checkbox" value="3" /> Qua</label>
+                      <label><input name="repeatWeekdays" type="checkbox" value="4" /> Qui</label>
+                      <label><input name="repeatWeekdays" type="checkbox" value="5" /> Sex</label>
+                      <label><input name="repeatWeekdays" type="checkbox" value="6" /> Sáb</label>
+                    </div>
+                    <label for="repeat-until">Repetir até</label><input id="repeat-until" name="repeatUntil" type="date" />
+                  </div>
+                  <div class="form-field form-field--full"><label for="notes">Observações</label><textarea id="notes" name="notes" maxlength="500" placeholder="Inclua orientações importantes"></textarea></div>
+                  <div class="form-field form-field--full"><label><input id="event-important" name="important" type="checkbox" checked /> É importante? (avisa no sino quando a data estiver próxima)</label></div>
+                </div>
+                <div class="form-actions"><button class="primary-button" id="submit-button" type="submit">Cadastrar evento</button><button class="secondary-button" id="cancel-button" type="button">Cancelar</button><p class="form-message" id="form-message" aria-live="polite"></p></div>
+              </form>
+            </div>
+
+            <div class="calendar">
+              <div class="calendar__grid calendar__grid--weekdays">
+                <span class="calendar__weekday">Dom</span><span class="calendar__weekday">Seg</span><span class="calendar__weekday">Ter</span>
+                <span class="calendar__weekday">Qua</span><span class="calendar__weekday">Qui</span><span class="calendar__weekday">Sex</span><span class="calendar__weekday">Sáb</span>
+              </div>
+              <div class="calendar__grid" id="calendar-grid"></div>
+            </div>
+          </section>
+
+          <section class="history-panel" aria-labelledby="daily-title">
+            <div class="history-panel__header"><div><p class="eyebrow">Selecionado</p><h2 id="daily-title">Eventos do dia</h2></div><p class="records-count" id="daily-date-label"></p></div>
+            <p class="empty-history" id="empty-daily">Nenhum evento nesta data.</p>
+            <div class="table-wrapper" id="daily-wrapper" hidden><table><thead><tr><th>Horário</th><th>Título</th><th>Categoria</th><th>Status</th><th>Registrado por</th><th>Ações</th></tr></thead><tbody id="daily-body"></tbody></table></div>
+          </section>
+        </main>
+        <footer><div class="container"><p><span class="footer-heart"></span>Lory's Care — apoio para o cuidado cotidiano.</p></div></footer>
+      </div>
+    </div>
+    <script src="js/theme-toggle.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth-context.js"></script>
+    <script src="js/caregiver-profiles-repository.js?v=20260824-1"></script>
+    <script src="js/caregiver-context.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/work-shifts-repository.js?v=20260821-1"></script>
+    <script src="js/ui-icons.js?v=20260821-1"></script>
+    <script src="js/account-menu.js"></script>
+    <script src="js/sidebar-toggle.js"></script>
+    <script src="js/patient-context.js"></script>
+    <script src="js/live-updates.js"></script>
+    <script src="js/events-repository.js"></script>
+    <script src="js/agenda.js?v=20260825-1"></script>
+  </body>
+</html>

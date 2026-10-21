@@ -1,0 +1,179 @@
+:root {
+  --ink: #20302c;
+  --muted: #62716d;
+  --line: #d7e0dc;
+  --accent: #286b5f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: #eef2f0;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.5;
+}
+
+.sheet-toolbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.sheet-toolbar a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.sheet-toolbar button {
+  padding: 10px 18px;
+  color: #ffffff;
+  background: var(--accent);
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sheet-error {
+  margin: 40px auto;
+  max-width: 600px;
+  padding: 20px;
+  color: #9b2c2c;
+  background: #fbeaea;
+  border-radius: 8px;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.sheet {
+  width: min(820px, calc(100% - 48px));
+  margin: 32px auto 64px;
+  padding: 48px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(32, 48, 44, 0.1);
+}
+
+.sheet-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--accent);
+}
+
+.sheet-brand {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sheet-header h1 {
+  margin: 0 0 6px;
+  font-size: 2rem;
+}
+
+.sheet-header p {
+  margin: 0;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.9rem;
+}
+
+.sheet-section {
+  margin-top: 28px;
+  break-inside: avoid;
+}
+
+.sheet-section h2 {
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.sheet-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 24px;
+}
+
+.sheet-field--full {
+  grid-column: 1 / -1;
+}
+
+.sheet-field dt {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sheet-field dd {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.sheet-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+}
+
+.sheet-table th,
+.sheet-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.sheet-table th {
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sheet-empty {
+  margin-top: 28px;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .sheet {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}

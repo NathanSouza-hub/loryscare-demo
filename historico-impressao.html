@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="demo/servidor.js"></script>
+    <script src="demo/migracoes.js"></script>
+    <script src="demo/semear.js"></script>
+    <script src="demo/demo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Histórico de sinais vitais para impressão." />
+    <title>Histórico | Lory's Care</title>
+    <link rel="stylesheet" href="css/ficha-print.css" />
+  </head>
+  <body>
+    <div class="sheet-toolbar no-print">
+      <a href="sinais-vitais.html">← Voltar</a>
+      <button type="button" id="print-button">📄 Gerar PDF / Imprimir</button>
+    </div>
+
+    <p class="sheet-error" id="sheet-error" hidden></p>
+
+    <main class="sheet" id="sheet-root" hidden>
+      <header class="sheet-header">
+        <p class="sheet-brand">Lory's Care — Histórico de sinais vitais</p>
+        <h1 id="sheet-name"></h1>
+        <p id="sheet-subtitle"></p>
+      </header>
+      <table class="sheet-table" id="sheet-table">
+        <thead>
+          <tr>
+            <th>Data e hora</th>
+            <th>Turno</th>
+            <th>PA</th>
+            <th>FC</th>
+            <th>Saturação</th>
+            <th>Temperatura</th>
+            <th>Glicemia</th>
+            <th>Observações</th>
+          </tr>
+        </thead>
+        <tbody id="sheet-table-body"></tbody>
+      </table>
+      <p class="sheet-empty" id="sheet-empty" hidden>Nenhum registro encontrado para os filtros selecionados.</p>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth-context.js"></script>
+    <script src="js/patients-repository.js"></script>
+    <script src="js/vitals-repository.js"></script>
+    <script src="js/historico-impressao.js"></script>
+  </body>
+</html>

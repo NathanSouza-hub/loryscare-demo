@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="demo/servidor.js"></script>
+    <script src="demo/migracoes.js"></script>
+    <script src="demo/semear.js"></script>
+    <script src="demo/demo.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Painel do dia no Lory's Care." />
+    <title>Lory's Care</title>
+    <script>
+      (function () {
+        var theme = "system";
+        try { theme = localStorage.getItem("loreroutine:theme") || "system"; } catch (error) {}
+        var dark = theme === "dark"
+          || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css?v=20261013-3" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__header">
+          <a class="brand" href="index.html"><span class="brand__icon"></span>Lory's<span> Care</span></a>
+          <button class="sidebar-toggle-button" id="sidebar-toggle-button" type="button" aria-label="Recolher menu">☰</button>
+        </div>
+        <p class="sidebar__tagline">Cuidado que acolhe.</p>
+        <select class="patient-switcher" id="patient-switcher" aria-label="Selecionar paciente"></select>
+        <div class="sidebar-user-card" id="sidebar-user-card">
+          <div class="sidebar-user-card__avatar" id="sidebar-user-avatar"></div>
+          <div class="sidebar-user-card__info">
+            <p class="sidebar-user-card__name" id="sidebar-user-name"></p>
+            <p class="sidebar-user-card__role">Cuidador</p>
+          </div>
+        </div>
+        <nav class="sidebar__nav">
+          <a class="nav-link nav-link--active" href="index.html">Dashboard</a>
+          <a class="nav-link" href="pacientes.html">Paciente</a>
+          <a class="nav-link" href="sinais-vitais.html">Sinais vitais</a>
+          <a class="nav-link" href="medicamentos.html">Medicamentos</a>
+          <a class="nav-link" href="atividades.html">Atividades</a>
+          <a class="nav-link" href="anotacoes-enfermagem.html">Anotações enfermagem</a>
+          <a class="nav-link" href="agenda.html">Agenda</a>
+          <a class="nav-link" href="plantoes.html">Plantões</a>
+        </nav>
+        <div class="sidebar-bottom-card">
+          <span class="icon sidebar-bottom-card__icon"></span>
+          <p>Acolher é estar presente.<br />Cuidar é fazer a diferença todos os dias.</p>
+        </div>
+      </aside>
+
+      <div class="main-area">
+        <header class="topbar">
+          <div class="container topbar__content">
+            <div class="notifications" id="notifications">
+              <button class="notifications__button" id="notifications-button" type="button" aria-label="Notificações">
+                <span class="icon notifications__bell-icon"></span><span class="notifications__badge" id="notifications-badge" hidden>0</span>
+              </button>
+              <div class="notifications__panel" id="notifications-panel" hidden>
+                <p class="notifications__title">Não realizado ontem</p>
+                <p class="notifications__empty" id="notifications-missed-empty">Nenhuma pendência de ontem.</p>
+                <ul class="notifications__list" id="notifications-missed-list"></ul>
+                <p class="notifications__title">Eventos próximos</p>
+                <p class="notifications__empty" id="notifications-empty">Nenhum evento nos próximos dias.</p>
+                <ul class="notifications__list" id="notifications-list"></ul>
+              </div>
+            </div>
+            <p class="current-date" id="current-date" aria-live="polite"></p>
+            <div data-theme-toggle></div><div class="account-menu" id="account-menu"></div>
+          </div>
+        </header>
+
+        <main class="main-content">
+          <div class="container">
+            <section class="page-header">
+              <h1 id="dashboard-title">Olá!</h1>
+            </section>
+
+            <p class="form-message" id="dashboard-message" aria-live="polite"></p>
+
+            <div class="dashboard-grid">
+              <div class="dashboard-main">
+                <div class="tabs-row">
+                  <div class="tabs" role="tablist">
+                    <button class="tab-button" id="tab-button-agenda" type="button" data-tab="agenda">Agenda do dia</button>
+                    <button class="tab-button" id="tab-button-vitais" type="button" data-tab="vitais">Sinais vitais</button>
+                    <button class="tab-button" id="tab-button-anotacoes" type="button" data-tab="anotacoes">Anotações enfermagem</button>
+                  </div>
+                  <div class="form-field"><label for="tasks-date">Data</label><input id="tasks-date" type="date" /></div>
+                </div>
+
+                <section class="today-panel" id="tab-agenda" aria-labelledby="today-title">
+                  <div class="history-panel__header">
+                    <div><p class="eyebrow"><span class="icon" data-icon="calendarDays"></span>Agenda do dia</p><h2 id="today-title">Tarefas do dia</h2></div>
+                  </div>
+                  <p class="empty-history" id="today-empty">Nenhuma tarefa programada para hoje.</p>
+                  <ul class="today-list" id="today-list"></ul>
+                  <details class="today-done" id="today-done-panel" hidden>
+                    <summary class="today-done__summary">Realizadas (<span id="today-done-count">0</span>)</summary>
+                    <ul class="today-list" id="today-done-list"></ul>
+                  </details>
+                </section>
+
+                <section class="today-panel" id="tab-vitais" aria-labelledby="vitals-today-title" hidden>
+                  <div class="history-panel__header">
+                    <div><p class="eyebrow">Sinais vitais</p><h2 id="vitals-today-title">Registros de hoje</h2></div>
+                    <a class="back-link" href="sinais-vitais.html">Registrar →</a>
+                  </div>
+                  <p class="empty-history" id="vitals-today-empty">Nenhum sinal vital registrado hoje.</p>
+                  <ul class="today-list" id="vitals-today-list"></ul>
+                </section>
+
+                <section class="today-panel" id="tab-anotacoes" aria-labelledby="notes-today-title" hidden>
+                  <div class="history-panel__header">
+                    <div><p class="eyebrow">Anotações enfermagem</p><h2 id="notes-today-title">Evolução de hoje</h2></div>
+                    <a class="back-link" href="anotacoes-enfermagem.html">Registrar →</a>
+                  </div>
+                  <p class="empty-history" id="notes-today-empty">Nenhuma anotação registrada hoje.</p>
+                  <ul class="today-list" id="notes-today-list"></ul>
+                </section>
+              </div>
+
+              <aside class="dashboard-side">
+                <section class="side-card" id="summary-card">
+                  <h2 class="side-card__title">Resumo do dia</h2>
+                  <div class="summary-stats">
+                    <div class="summary-stat summary-stat--scheduled">
+                      <span class="summary-stat__dot"></span>
+                      <div><p class="summary-stat__number" id="summary-scheduled">0</p><p class="summary-stat__label">Programadas</p></div>
+                    </div>
+                    <div class="summary-stat summary-stat--done">
+                      <span class="summary-stat__dot"></span>
+                      <div><p class="summary-stat__number" id="summary-done">0</p><p class="summary-stat__label">Concluídas</p></div>
+                    </div>
+                    <div class="summary-stat summary-stat--pending">
+                      <span class="summary-stat__dot"></span>
+                      <div><p class="summary-stat__number" id="summary-pending">0</p><p class="summary-stat__label">Pendentes</p></div>
+                    </div>
+                    <div class="summary-stat summary-stat--late">
+                      <span class="summary-stat__dot"></span>
+                      <div><p class="summary-stat__number" id="summary-late">0</p><p class="summary-stat__label">Atrasadas</p></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="side-card tip-card">
+                  <div class="tip-card__header"><span class="icon" data-icon="heart"></span><h2 class="side-card__title">Verso do dia</h2></div>
+                  <p class="tip-card__verse" id="daily-verse-text"></p>
+                  <p class="tip-card__reference" id="daily-verse-reference"></p>
+                </section>
+
+                <section class="side-card">
+                  <h2 class="side-card__title">Atalhos rápidos</h2>
+                  <div class="quick-actions__grid">
+                    <a class="quick-action" href="medicamentos.html"><span class="icon" data-icon="pill"></span>Medicamentos</a>
+                    <a class="quick-action" href="sinais-vitais.html"><span class="icon" data-icon="heartPulse"></span>Sinais vitais</a>
+                    <a class="quick-action" href="anotacoes-enfermagem.html"><span class="icon" data-icon="notebookPen"></span>Anotações</a>
+                    <a class="quick-action" href="agenda.html"><span class="icon" data-icon="calendarDays"></span>Agenda</a>
+                  </div>
+                </section>
+              </aside>
+            </div>
+          </div>
+        </main>
+
+        <footer><div class="container"><p><span class="footer-heart"></span>Lory's Care — apoio para o cuidado cotidiano.</p></div></footer>
+      </div>
+    </div>
+
+    <script src="js/theme-toggle.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth-context.js"></script>
+    <script src="js/caregiver-profiles-repository.js?v=20260824-1"></script>
+    <script src="js/caregiver-context.js"></script>
+    <script src="js/icons.js"></script>
+    <script src="js/work-shifts-repository.js?v=20260821-1"></script>
+    <script src="js/ui-icons.js?v=20260821-1"></script>
+    <script src="js/account-menu.js"></script>
+    <script src="js/sidebar-toggle.js"></script>
+    <script src="js/patient-context.js"></script>
+    <script src="js/live-updates.js"></script>
+    <script src="js/routines-repository.js"></script>
+    <script src="js/medications-repository.js"></script>
+    <script src="js/vitals-repository.js"></script>
+    <script src="js/events-repository.js"></script>
+    <script src="js/nursing-notes-repository.js"></script>
+    <script src="js/psalms-data.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>
