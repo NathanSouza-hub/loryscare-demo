@@ -12,6 +12,28 @@
 
   const { app, definirBanco } = window.LorysServidor;
 
+  // Quem chega pelo portfólio entra direto: a conta demo (id 1) e a cuidadora Ana (id 1)
+  // são as primeiras criadas pelo semear.js. O token segue o formato do shim de jsonwebtoken.
+  // Na tela de login (depois de "Sair") a sessão não é recriada.
+  function abrirSessaoDemo() {
+    const pagina = location.pathname.split("/").pop();
+    if (pagina === "login.html" || pagina === "cadastro.html") return;
+    try {
+      const atual = localStorage.getItem("loreroutine:token");
+      if (atual) {
+        const { exp } = JSON.parse(atob(atual.slice(5)));
+        if (!exp || exp * 1000 > Date.now()) return;
+      }
+      const agora = Math.floor(Date.now() / 1000);
+      localStorage.setItem("loreroutine:token", "demo." + btoa(JSON.stringify({ userId: "1", iat: agora, exp: agora + 30 * 86400 })));
+      localStorage.setItem("loreroutine:userName", "Família Duarte");
+      localStorage.setItem("loreroutine:profileId", "1");
+      localStorage.setItem("loreroutine:profileName", "Ana Souza");
+      localStorage.setItem("loreroutine:profileColor", "#2563eb");
+    } catch (e) {}
+  }
+  abrirSessaoDemo();
+
   async function iniciar() {
     const { PGlite } = await import(PGLITE_URL);
     // int8 como texto, igual ao node-postgres
@@ -25,6 +47,18 @@
       await window.semearLorys(chamarApi);
     }
     esconderAviso();
+
+    // Na primeira visita a página carrega antes de haver paciente escolhida:
+    // escolhe a paciente da conta demo e recarrega uma vez para o painel vir preenchido
+    try {
+      if (localStorage.getItem("loreroutine:token") && !localStorage.getItem("loreroutine:patientId")) {
+        const paciente = await db.query("SELECT id::text AS id FROM patients WHERE user_id = 1 ORDER BY id LIMIT 1");
+        if (paciente.rows[0]) {
+          localStorage.setItem("loreroutine:patientId", paciente.rows[0].id);
+          location.reload();
+        }
+      }
+    } catch (e) {}
   }
 
   function chamarApi(method, url, body, headers = {}) {
@@ -79,7 +113,7 @@
       const pedido = indexedDB.deleteDatabase("/pglite/loryscare-demo");
       pedido.onsuccess = pedido.onerror = pedido.onblocked = resolve;
     });
-    location.href = "login.html";
+    location.href = "index.html";
   }
 
   // Faixa de aviso da demo e indicador de carregamento
@@ -123,7 +157,7 @@
     faixa.setAttribute("role", "note");
     faixa.innerHTML = `
       <span><strong>Demo</strong> · paciente e dados fictícios, salvos só no seu navegador</span>
-      <span>Login: <code>${EMAIL}</code> / <code>${SENHA}</code> · PIN dos cuidadores: <code>1234</code></span>
+      <span>Trocar de cuidador: PIN <code>1234</code></span>
       <button type="button">Restaurar dados</button>
       <a href="${CODIGO}" target="_blank" rel="noopener">Código ↗</a>
     `;
